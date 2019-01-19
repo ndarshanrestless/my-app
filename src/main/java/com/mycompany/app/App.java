@@ -1,68 +1,178 @@
 package com.mycompany.app;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.*;
-
-import lombok.Value;
-import lombok.Builder;
-import lombok.*;
-import lombok.experimental.*;
-
-
-import lombok.Builder;
-import lombok.Singular;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.swing.text.html.Option;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Find the path in the matrix which has 1's
  *
  */
-public class App 
-{
+import java.io.*;
 
-    private static boolean[][] inputFlag = null;
+import com.oracle.bmc.ConfigFileReader;
+import com.oracle.bmc.Region;
+import com.oracle.bmc.auth.AuthenticationDetailsProvider;
+import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
+import com.oracle.bmc.core.VirtualNetworkClient;
+import com.oracle.bmc.core.model.CreateVcnDetails;
+import com.oracle.bmc.core.model.UpdateVcnDetails;
+import com.oracle.bmc.core.model.Vcn;
+import com.oracle.bmc.core.requests.CreateVcnRequest;
+import com.oracle.bmc.core.requests.GetVcnRequest;
+import com.oracle.bmc.core.requests.UpdateVcnRequest;
+import com.oracle.bmc.core.responses.CreateVcnResponse;
+import com.oracle.bmc.core.responses.GetVcnResponse;
+import com.oracle.bmc.core.responses.UpdateVcnResponse;
+import com.oracle.bmc.identity.IdentityClient;
+import com.oracle.bmc.identity.model.CreateTagDetails;
+import com.oracle.bmc.identity.model.CreateTagNamespaceDetails;
+import com.oracle.bmc.identity.model.Tag;
+import com.oracle.bmc.identity.model.TagNamespace;
+import com.oracle.bmc.identity.model.TagNamespaceSummary;
+import com.oracle.bmc.identity.model.TagSummary;
+import com.oracle.bmc.identity.model.UpdateTagDetails;
+import com.oracle.bmc.identity.model.UpdateTagNamespaceDetails;
+import com.oracle.bmc.identity.requests.CreateTagNamespaceRequest;
+import com.oracle.bmc.identity.requests.CreateTagRequest;
+import com.oracle.bmc.identity.requests.GetTagNamespaceRequest;
+import com.oracle.bmc.identity.requests.GetTagRequest;
+import com.oracle.bmc.identity.requests.ListTagNamespacesRequest;
+import com.oracle.bmc.identity.requests.ListTagsRequest;
+import com.oracle.bmc.identity.requests.UpdateTagNamespaceRequest;
+import com.oracle.bmc.identity.requests.UpdateTagRequest;
+import com.oracle.bmc.identity.responses.CreateTagNamespaceResponse;
+import com.oracle.bmc.identity.responses.CreateTagResponse;
+import com.oracle.bmc.identity.responses.UpdateTagNamespaceResponse;
+import com.oracle.bmc.identity.responses.UpdateTagResponse;
+import com.oracle.bmc.model.BmcException;
 
-    public static void main( String[] args )
-    {
-        /*
-        int[][] input = { {1,1,1,0,0} , {0,0,1,1,0}, {0,0,1,1,1},{0,0,1,0,1} };
-        int rows = input.length;
-        int cols = input[0].length;
-        ArrayList<List<Integer>> retArr = new ArrayList<List<Integer>>();
-
-        inputFlag = new boolean[rows][cols];
-
-        //retArr = find_path(input, 0,0,4,5, retArr);
-        //System.out.println(retArr);
-
-        int missingNum = firstMissingPositive(new int[]{-1,1,0,4,3,6,2,-5,5,8});
-        System.out.println(missingNum);
-
-        //BuildClass bobj =
-*/
-        Integer blockStorageSizeGB = null;
-        //Preconditions.checkState(blockStorageSizeGB >= 0,"blockStorageSizeGB %d is less than zero", blockStorageSizeGB);
+import com.oracle.bmc.Region;
+import com.oracle.bmc.auth.AuthenticationDetailsProvider;
+import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
+import com.oracle.bmc.objectstorage.ObjectStorage;
+import com.oracle.bmc.objectstorage.ObjectStorageClient;
+import com.oracle.bmc.objectstorage.model.CreateBucketDetails;
+import com.oracle.bmc.objectstorage.requests.CreateBucketRequest;
+import com.oracle.bmc.objectstorage.requests.GetBucketRequest;
+import com.oracle.bmc.objectstorage.requests.GetNamespaceRequest;
+import com.oracle.bmc.objectstorage.requests.PutObjectRequest;
+import com.oracle.bmc.objectstorage.responses.GetBucketResponse;
+import com.oracle.bmc.objectstorage.responses.GetNamespaceResponse;
 
 
-        System.out.println("darshan:{}" + blockStorageSizeGB);
+import java.util.ArrayList;
+import java.util.List;
+
+public class App {
+
+    public static void main(String[] args) throws IOException {
+        readFirstLineFromFile("/tmp/blah");
+        doOciSgwTest();
+    }
+
+    static void readFirstLineFromFile(String path) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(path));
+        try {
+            System.out.println(br.readLine());
+        } catch (Exception ex) {
+
+        }
+    }
+
+
+    static void doOciSgwTest() {
+        String configurationFilePath = "~/.oci/darshan_config";
+        String profile = "DEFAULT";
+        AuthenticationDetailsProvider provider = null;
+        try {
+             provider = new ConfigFileAuthenticationDetailsProvider(configurationFilePath, profile);
+
+        } catch (Exception ex) {
+            System.out.println("Ran into error" + ex.getMessage());
+            return;
+        }
+
+
+        ObjectStorage client = new ObjectStorageClient(provider);
+        //client.setRegion(Region.US_PHOENIX_1);
+
+
+        final String bucket = "xyz";
+
+        System.out.println("Getting the namespace.");
+        GetNamespaceResponse namespaceResponse =
+                client.getNamespace(GetNamespaceRequest.builder().build());
+        String namespaceName = namespaceResponse.getValue();
+
+        System.out.println("Creating Get bucket request");
+        List<GetBucketRequest.Fields> fieldsList = new ArrayList<>(2);
+        fieldsList.add(GetBucketRequest.Fields.ApproximateCount);
+        fieldsList.add(GetBucketRequest.Fields.ApproximateSize);
+        GetBucketRequest request =
+                GetBucketRequest.builder()
+                        .namespaceName(namespaceName)
+                        .bucketName(bucket)
+                        .fields(fieldsList)
+                        .build();
+
+        System.out.println("Fetching bucket details");
+        GetBucketResponse response = client.getBucket(request);
+
+    }
+}
+/*
+    testing enum
+    public static void main(String[] args){
+
+        System.out.println(TagRuleResourceKind.dbsystem.getText());
+        System.out.println(TagRuleResourceKind.database.getText());
 
     }
 
-    /*
+    public enum TagRuleResourceKind
+    {
+        dbsystem("db-systems"),
+        database("databases");
+
+        @Getter
+        private String text;
+
+        TagRuleResourceKind(String text) {
+            this.text = text;
+        }
+
+    }
+
+    // testing exception
+    public static void main(String[] args) throws IllegalArgumentException {
+        {
+            errorFunc();
+            //fileFunc();
+
+    }
+
+    private static  void fileFunc() throws IOException{
+        FileReader file = new FileReader("C:\\test\\a.txt");
+        BufferedReader fileInput = new BufferedReader(file);
+
+        // Print first 3 lines of file "C:\test\a.txt"
+        for (int counter = 0; counter < 3; counter++)
+            System.out.println(fileInput.readLine());
+
+        fileInput.close();
+
+    }
+
+    private static void errorFunc(){
+        System.out.println("inside errorFunc");
+
+        throw new IllegalArgumentException("errorFunc");
+    }
+
+
     // special getter for optional field
     public static Optional<String> getPostcode(String in) {
         Option<String> postcode = new String ("");
         return Optional.ofNullable(postcode);
     }
-    */
 
     private static ArrayList<List<Integer>> find_path(int[][] input, int m, int n, final int rows, final int cols,
                               ArrayList<List<Integer>> retArr){
@@ -156,7 +266,7 @@ public class App
         return testArrList.contains(lastNode) ? true : false;
     }
 
-    /*
+
     Given an unsorted integer array, find the first missing positive integer.
 
     For example,
@@ -164,7 +274,7 @@ public class App
     and [3,4,-1,1] return 2.
 
     Your algorithm should run in O(n) time and uses constant space.
-    */
+
     public static int firstMissingPositive(int[] nums) {
         int inLen = nums.length;
         int largest = 0;
@@ -221,11 +331,4 @@ class BuildClass {
         System.out.println(bObj1.age);
     }
 }
-
-
-@Builder
-class BuilderExample {
-    private String name;
-    public int age;
-    @Singular public Set<String> occupations;
-}
+*/
