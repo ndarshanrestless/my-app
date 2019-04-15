@@ -57,15 +57,28 @@ import com.oracle.bmc.objectstorage.requests.PutObjectRequest;
 import com.oracle.bmc.objectstorage.responses.GetBucketResponse;
 import com.oracle.bmc.objectstorage.responses.GetNamespaceResponse;
 
+//import com.oracle.pic.sgw.api.clients.OverlayInternalApiTestClientSetup;
+//import com.oracle.pic.sgw.api.OverlayInternalServiceGatewayClient;
+//import com.oracle.pic.sgw.model.SgwVcnHeaderMapping;
+//import com.oracle.pic.commons.client.authentication.ClientAuthenticationConfig;
+
+//import com.oracle.pic.commons.client.authentication.FileBasedAuthenticationConfig;
+
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class App {
 
+
+    //static OverlayInternalServiceGatewayClient internalOverlayApiTestClient;
+
     public static void main(String[] args) throws IOException {
-        readFirstLineFromFile("/tmp/blah");
-        doOciSgwTest();
+        //static OverlayInternalServiceGatewayClient internalOverlayApiTestClient;
+        //internalOverlayApiTestClient.listSgwVcnHeaderMappings(1, null);
+
+        //readFirstLineFromFile("/tmp/blah");
+        //doOciSgwTest();
     }
 
     static void readFirstLineFromFile(String path) throws IOException {
