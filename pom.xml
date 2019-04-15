@@ -188,10 +188,6 @@
     </dependency>
     <dependency>
       <groupId>com.oracle.oci.sdk</groupId>
-      <artifactId>oci-java-sdk-dns</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle.oci.sdk</groupId>
       <artifactId>oci-java-sdk-filestorage</artifactId>
     </dependency>
     <dependency>
@@ -236,6 +232,19 @@
       <groupId>com.oracle.oci.sdk</groupId>
       <artifactId>oci-java-sdk-keymanagement</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>com.oracle.pic.identity.authentication</groupId>
+      <artifactId>authentication-common</artifactId>
+      <version>1.7.6</version>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.pic.identity.authentication</groupId>
+      <artifactId>authentication-signed-request-common</artifactId>
+      <version>1.7.6</version>
+    </dependency>
+
+
   </dependencies>
 </project>
 
